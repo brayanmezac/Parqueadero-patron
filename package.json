@@ -1,0 +1,16 @@
+{
+  "name": "parqueadero-app",
+  "version": "1.0.0",
+  "description": "Software básico de parqueadero con Express y SQLite",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app2.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.21.0",
+    "sqlite3": "^5.1.7"
+  }
+}
