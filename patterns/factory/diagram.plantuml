@@ -1,0 +1,33 @@
+@startuml VehiculoFactoryDiagram
+interface Vehiculo {
+  +calcularPago(horas: int): int
+}
+
+class Auto {
+  -placa: String
+  -tarifa: int
+  +calcularPago(horas: int): int
+}
+
+class Moto {
+  -placa: String
+  -tarifa: int
+  +calcularPago(horas: int): int
+}
+
+class Camioneta {
+  -placa: String
+  -tarifa: int
+  +calcularPago(horas: int): int
+}
+
+Vehiculo <|-- Auto
+Vehiculo <|-- Moto
+Vehiculo <|-- Camioneta
+
+class VehiculoFactory {
+  +createVehiculo(tipo: String, placa: String): Vehiculo
+}
+
+VehiculoFactory o-- Vehiculo
+@enduml

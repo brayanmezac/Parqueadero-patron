@@ -1,114 +1,84 @@
 const express = require('express');
-const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
+const VehiculoFactory = require('./patterns/factory/vehiculoFactory');
+const { GymDescuentoDecorator, HospitalDescuentoDecorator } = require('./patterns/decorator/vehiculoDecorator');
+const InformeBuilder = require('./patterns/builder/informeBuilder');
+const dbInstance = require('./patterns/singleton/dbSingleton').getInstance();
 
 const app = express();
-const db = new sqlite3.Database('parqueadero.db');
 
 // Middleware
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 
 // Crear tabla si no existe
-db.run("CREATE TABLE IF NOT EXISTS parqueos (id INTEGER PRIMARY KEY AUTOINCREMENT, placa TEXT, tipo TEXT, horaEntrada TEXT, horaSalida TEXT)");
+dbInstance.run(`CREATE TABLE IF NOT EXISTS parqueos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT, 
+    placa TEXT, 
+    tipo TEXT, 
+    horaEntrada TEXT, 
+    horaSalida TEXT,
+    descuento TEXT
+)`);
 
-// Factory Method
-class VehiculoFactory {
-  createVehiculo(tipo, placa) { 
-    switch (tipo) {
-      case 'auto':
-        return new Auto(placa);
-      case 'moto':
-        return new Moto(placa);
-      case 'camioneta':
-        return new Camioneta(placa);
-      default:
-        throw new Error("Tipo de vehículo no válido.");
-    }
-  }
-}
-
-// Clases de vehículos
-class Vehiculo {
-  constructor(placa, tarifa) {
-    this.placa = placa;
-    this.horaEntrada = new Date().toISOString();
-    this.tarifa = tarifa;  // Precio por hora
-  }
-
-  calcularPago(horas) {
-    return horas * this.tarifa;
-  }
-}
-
-class Auto extends Vehiculo {
-  constructor(placa) {
-    super(placa, 5000);  // Auto paga 5000 por hora
-  }
-}
-
-class Moto extends Vehiculo {
-  constructor(placa) {
-    super(placa, 2000);  // Moto paga 2000 por hora
-  }
-}
-
-class Camioneta extends Vehiculo {
-  constructor(placa) {
-    super(placa, 7000);  // Camioneta paga 7000 por hora
-  }
-}
-
-const vehiculoFactory = new VehiculoFactory();
-
+// Ruta para registrar la entrada de vehículos
 app.post('/registrar-entrada', (req, res) => {
-  const { placa, tipo } = req.body;
+  const { placa, tipo, descuento } = req.body;
+  console.log('Datos recibidos:', { placa, tipo, descuento });
 
   try {
-    const vehiculo = vehiculoFactory.createVehiculo(tipo, placa);
-    db.run(`INSERT INTO parqueos (placa, tipo, horaEntrada) VALUES (?, ?, ?)`,
-      [vehiculo.placa, tipo, vehiculo.horaEntrada], function(err) {
+    const vehiculo = VehiculoFactory.createVehiculo(tipo, placa);
+    console.log('Vehículo creado:', vehiculo);
+
+    dbInstance.run(`INSERT INTO parqueos (placa, tipo, horaEntrada, descuento) VALUES (?, ?, ?, ?)`,
+      [vehiculo.placa, tipo, new Date().toISOString(), descuento], function(err) {
       if (err) {
-        return res.status(500).send("Error al registrar la entrada.");
+        console.error('Error al insertar en la base de datos:', err);
+        return res.status(500).send("Error al registrar la entrada: " + err.message);
       }
-      res.send("Entrada registrada correctamente.");
+      console.log('Entrada registrada con éxito');
+      res.status(200).send("Entrada registrada exitosamente.");
     });
   } catch (error) {
-    res.status(400).send(error.message);
+    console.error('Error al crear el vehículo:', error);
+    res.status(400).send("Error al registrar la entrada: " + error.message);
   }
 });
 
-// Ruta para obtener la lista de vehículos
-app.get('/parqueos', (req, res) => {
-  db.all("SELECT * FROM parqueos WHERE horaSalida IS NULL", [], (err, rows) => {
+// Ruta para obtener los valores calculados
+app.get('/calcular-valores/:id', (req, res) => {
+  const { id } = req.params;
+
+  dbInstance.get("SELECT * FROM parqueos WHERE id = ?", [id], (err, row) => {
     if (err) {
-      return res.status(500).send("Error al obtener los vehículos.");
+      return res.status(500).send("Error al buscar el registro.");
     }
-    res.json(rows);  // Devolver los vehículos en formato JSON
-  });
-});
-
-app.post('/pagar', (req, res) => {
-  const { id } = req.body;
-
-  db.get("SELECT * FROM parqueos WHERE id = ?", [id], (err, row) => {
-    if (err || !row) {
-      return res.status(404).send("Vehículo no encontrado.");
+    if (!row) {
+      return res.status(404).send("Registro no encontrado.");
     }
 
     const horaEntrada = new Date(row.horaEntrada);
     const horaSalida = new Date();
     const horasEstacionado = Math.ceil((horaSalida - horaEntrada) / (1000 * 60 * 60));  // Calcula horas
-    
-    try {
-      const vehiculo = vehiculoFactory.createVehiculo(row.tipo, row.placa);
-      const pago = vehiculo.calcularPago(horasEstacionado);
 
-      db.run("UPDATE parqueos SET horaSalida = ? WHERE id = ?", [horaSalida.toISOString(), id], (err) => {
-        if (err) {
-          return res.status(500).send("Error al registrar el pago.");
-        }
-        res.json({ mensaje: "Pago realizado", total: pago });
+    try {
+      let vehiculo = VehiculoFactory.createVehiculo(row.tipo, row.placa);
+      const tarifaPorHora = vehiculo.tarifa;  // Tarifa por hora sin descuento
+
+      if (row.descuento === 'gym') {
+        vehiculo = new GymDescuentoDecorator(vehiculo);
+      } else if (row.descuento === 'hospital') {
+        vehiculo = new HospitalDescuentoDecorator(vehiculo);
+      }
+
+      const subtotal = tarifaPorHora * horasEstacionado;
+      const total = vehiculo.calcularPago(horasEstacionado);
+
+      res.json({
+        horasEstacionado,
+        tarifaPorHora,
+        subtotal,
+        total
       });
     } catch (error) {
       res.status(400).send(error.message);
@@ -116,7 +86,70 @@ app.post('/pagar', (req, res) => {
   });
 });
 
-// Iniciar servidor
+// Ruta para listar los vehículos estacionados
+app.get('/parqueos', (req, res) => {
+  dbInstance.all("SELECT * FROM parqueos WHERE horaSalida IS NULL", [], (err, rows) => {
+    if (err) {
+      return res.status(500).send("Error al obtener los vehículos.");
+    }
+    res.json(rows);
+  });
+});
+
+// Ruta para registrar la salida de vehículos y calcular el pago
+app.post('/pagar', (req, res) => {
+  const { id } = req.body;
+
+  dbInstance.get("SELECT * FROM parqueos WHERE id = ?", [id], (err, row) => {
+    if (err) {
+      return res.status(500).send("Error al buscar el registro.");
+    }
+    if (!row) {
+      return res.status(404).send("Registro no encontrado.");
+    }
+
+    const horaEntrada = new Date(row.horaEntrada);
+    const horaSalida = new Date();
+    const horasEstacionado = Math.ceil((horaSalida - horaEntrada) / (1000 * 60 * 60));  // Calcula horas
+
+    try {
+      let vehiculo = VehiculoFactory.createVehiculo(row.tipo, row.placa);
+      console.log('Vehículo antes del descuento:', vehiculo);
+      const tarifaPorHora = vehiculo.calcularPago(1);  // Tarifa por hora sin descuento
+
+      if (row.descuento === 'gym') {
+        vehiculo = new GymDescuentoDecorator(vehiculo);
+      } else if (row.descuento === 'hospital') {
+        vehiculo = new HospitalDescuentoDecorator(vehiculo);
+      }
+      console.log('Vehículo después del descuento:', vehiculo);
+
+      const subtotal = tarifaPorHora * horasEstacionado;
+      const total = vehiculo.calcularPago(horasEstacionado);
+
+      dbInstance.run("UPDATE parqueos SET horaSalida = ? WHERE id = ?", [horaSalida.toISOString(), id], (err) => {
+        if (err) {
+          return res.status(500).send("Error al registrar el pago.");
+        }
+
+        const informeBuilder = new InformeBuilder();
+        const informe = informeBuilder
+          .setVehiculo(vehiculo)
+          .setHorasEstacionado(horasEstacionado)
+          .setTarifaPorHora(tarifaPorHora)
+          .setSubtotal(subtotal)
+          .setTipoDescuento(row.descuento)
+          .setTotal(total)
+          .build();
+
+        res.json({ mensaje: "Pago realizado", informe });
+      });
+    } catch (error) {
+      res.status(400).send(error.message);
+    } 
+  });
+});
+
 app.listen(3000, () => {
-  console.log('Servidor escuchando en http://localhost:3000');
+  console.log('Servidor escuchando en el puerto 3000');
 });
