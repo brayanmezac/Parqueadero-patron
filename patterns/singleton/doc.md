@@ -1,5 +1,15 @@
 # Documentación del Patrón Singleton en `dbSingleton.js`
 
+## Implementación del Patrón Singleton
+
+### Problema
+
+Gestionar múltiples conexiones a la base de datos puede llevar a problemas de concurrencia y consumo innecesario de recursos.
+
+### Cómo lo Soluciona
+
+El patrón Singleton garantiza que solo haya una única instancia de la conexión a la base de datos, proporcionando un punto de acceso global y mejorando el rendimiento y la estabilidad del sistema.
+
 ## Diagrama de Clases
 
 ```plantuml

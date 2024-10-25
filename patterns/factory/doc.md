@@ -2,6 +2,16 @@
 
 El patrón Factory es un patrón de diseño creacional que proporciona una interfaz para crear objetos en una superclase, pero permite a las subclases alterar el tipo de objetos que se crearán. Este patrón es útil cuando el proceso de creación de objetos es complejo o requiere una lógica adicional que no debería estar en el constructor de la clase.
 
+## Implementación del Patrón Factory
+
+### Problema
+
+La creación de diferentes tipos de vehículos (`Auto`, `Moto`, `Camioneta`) puede implicar lógica adicional y compleja que no debería estar en el constructor de la clase.
+
+### Cómo lo Soluciona
+
+El patrón Factory proporciona una interfaz para crear objetos en una superclase, pero permite a las subclases alterar el tipo de objetos que se crearán. Esto centraliza la lógica de creación y mejora la mantenibilidad del código.
+
 ### Diagrama de Clases
 
 ```plantuml

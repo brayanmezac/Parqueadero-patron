@@ -4,6 +4,16 @@
 
 El patrón Decorator es un patrón de diseño estructural que permite añadir funcionalidades a un objeto de manera dinámica. Este patrón se utiliza para extender las capacidades de los objetos de manera flexible y reutilizable, sin modificar su estructura original.
 
+## Implementación del Patrón Decorator
+
+### Problema
+
+Añadir funcionalidades adicionales a los vehículos, como descuentos, puede hacer que el código sea rígido y difícil de mantener si se implementa directamente en las clases de vehículos.
+
+### Cómo lo Soluciona
+
+El patrón Decorator permite añadir funcionalidades a un objeto de manera dinámica y flexible, sin modificar su estructura original. Esto mejora la reutilización y mantenibilidad del código.
+
 ## Estructura del Código
 
 ### Clase `VehiculoDecorator`

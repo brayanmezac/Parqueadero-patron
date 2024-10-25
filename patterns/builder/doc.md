@@ -4,6 +4,17 @@
 
 El patrón Builder es un patrón de diseño creacional que permite construir objetos complejos paso a paso. Este patrón es útil cuando la creación de un objeto implica varios pasos o configuraciones, y se desea evitar un constructor con muchos parámetros.
 
+## Implementación del Patrón Builder
+
+### Problema
+
+La creación de un informe detallado de los vehículos estacionados implica varios pasos y configuraciones. Usar un constructor con muchos parámetros puede hacer que el código sea difícil de leer y mantener.
+
+### Cómo lo Soluciona
+
+El patrón Builder permite construir el informe paso a paso, configurando cada parte del informe de manera flexible y reutilizable. Esto mejora la legibilidad y mantenibilidad del código.
+
+
 ## Estructura del Código
 
 ### Clase `InformeBuilder`
