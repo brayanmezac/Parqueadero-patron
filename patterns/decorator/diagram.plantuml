@@ -1,0 +1,23 @@
+@startuml
+class Vehiculo {
+  +placa: String
+  +tarifa: float
+  +horaEntrada: Date
+  +calcularPago(horas: int): float
+}
+
+class VehiculoDecorator {
+  -vehiculo: Vehiculo
+  +constructor(vehiculo: Vehiculo)
+  +calcularPago(horas: int): float
+}
+
+class GymDescuentoDecorator {
+  -descuento: float
+  +constructor(vehiculo: Vehiculo)
+  +calcularPago(horas: int): float
+}
+
+VehiculoDecorator o-- Vehiculo
+GymDescuentoDecorator --|> VehiculoDecorator
+@enduml

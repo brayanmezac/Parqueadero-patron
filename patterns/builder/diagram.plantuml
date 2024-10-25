@@ -1,0 +1,34 @@
+@startuml
+class InformeBuilder {
+  -informe: Object
+  +constructor()
+  +setVehiculo(vehiculo: Vehiculo): InformeBuilder
+  +setHorasEstacionado(horas: int): InformeBuilder
+  +setTarifaPorHora(tarifa: float): InformeBuilder
+  +setSubtotal(subtotal: float): InformeBuilder
+  +setTipoDescuento(descuento: String): InformeBuilder
+  +setTotal(total: float): InformeBuilder
+  +build(): Object
+}
+
+class Vehiculo {
+  +placa: String
+  +tarifa: float
+  +horaEntrada: Date
+  +calcularPago(horas: int): float
+}
+
+class Auto extends Vehiculo {
+}
+
+class Moto extends Vehiculo {
+}
+
+class Camioneta extends Vehiculo {
+}
+
+InformeBuilder o-- Vehiculo
+Vehiculo <|-- Auto
+Vehiculo <|-- Moto
+Vehiculo <|-- Camioneta
+@enduml

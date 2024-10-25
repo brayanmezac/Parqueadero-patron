@@ -1,0 +1,10 @@
+@startuml
+class DbSingleton {
+  -connection: sqlite3.Database
+  +constructor()
+  +getInstance(): sqlite3.Database
+  +disconnect(): void
+}
+
+DbSingleton -[hidden]-> sqlite3.Database
+@enduml
