@@ -47,22 +47,42 @@
             <button type="submit" class="btn btn-primary">Registrar entrada</button>
         </form>
 
-        <h2 class="mt-5">Lista de Parqueos</h2>
+        <h2 class="mt-5">Lista de Estacionados</h2>
         <table class="table mt-3">
             <thead>
                 <tr>
                     <th>Placa</th>
                     <th>Tipo</th>
                     <th>Hora de Entrada</th>
-                    <th>Tipo Descuento</th>
-                    <th>Tiempo</th>
                     <th>Descuento</th>
-                    <th>Precio</th>
-                    <th>Acción</th>
+                    <th>Horas Estacionado</th>
+                    <th>Descuento (%)</th>
+                    <th>Total</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
                 </tr>
             </thead>
-            <tbody id="listaParqueos">
+            <tbody id="listaEstacionados">
                 <!-- Aquí se insertarán los registros dinámicamente -->
+            </tbody>
+        </table>
+        </br>
+        <h2 class="mt-5">Historial de Vehículos Pagados</h2>
+        <table class="table mt-3">
+            <thead>
+                <tr>
+                    <th>Placa</th>
+                    <th>Tipo</th>
+                    <th>Hora de Entrada</th>
+                    <th>Descuento</th>
+                    <th>Horas Estacionado</th>
+                    <th>Descuento (%)</th>
+                    <th>Total</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody id="listaHistorial">
+                <!-- Historial de vehículos pagados se listarán aquí -->
             </tbody>
         </table>
     </div>

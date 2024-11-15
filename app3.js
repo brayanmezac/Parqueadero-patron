@@ -147,7 +147,8 @@ app.post('/pagar', (req, res) => {
                 tarifaPorHora,
                 subtotal,
                 tipoDescuento: row.descuento,
-                total
+                total,
+                estado: vehiculo.getEstado()
             };
 
             res.json({ mensaje: "Pago realizado", informe });

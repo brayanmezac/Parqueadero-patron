@@ -3,8 +3,11 @@ function cargarParqueos() {
     fetch('/parqueos')
         .then(response => response.json())
         .then(data => {
-            const listaParqueos = document.getElementById('listaParqueos');
+            const listaParqueos = document.getElementById('listaEstacionados');
+            const listaHistorial = document.getElementById('listaHistorial');
             listaParqueos.innerHTML = '';
+            listaHistorial.innerHTML = '';
+
             data.forEach(parqueo => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
@@ -16,9 +19,13 @@ function cargarParqueos() {
                     <td>${getDescuentoPorcentaje(parqueo.descuento)}</td>
                     <td id="total-${parqueo.id}">Calculando...</td>
                     <td id="estado-${parqueo.id}">${parqueo.estado || 'Estacionado'}</td>
-                    <td><button class="btn btn-sm btn-primary" onclick="registrarSalida(${parqueo.id})">Registrar Salida</button></td>
                 `;
-                listaParqueos.appendChild(row);
+                if (parqueo.estado === 'Estacionado') {
+                    row.innerHTML += `<td><button class="btn btn-sm btn-primary" onclick="registrarSalida(${parqueo.id})">Pagar</button></td>`;
+                    listaEstacionados.appendChild(row);
+                } else {
+                    listaHistorial.appendChild(row);
+                }
 
                 // Obtener y mostrar los valores calculados
                 fetch(`/calcular-valores/${parqueo.id}`)
