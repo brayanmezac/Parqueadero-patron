@@ -1,8 +1,31 @@
+const { EstacionadoState } = require('../state/vehiculoState');
+
 class Vehiculo {
   constructor(placa, tarifa) {
     this.placa = placa;
     this.tarifa = tarifa;
     this.horaEntrada = new Date().toISOString();
+    this.state = new EstacionadoState(); // Estado inicial
+  }
+
+  setState(state) {
+    this.state = state;
+  }
+
+  estacionar() {
+    this.state.estacionar(this);
+  }
+
+  mover() {
+    this.state.mover(this);
+  }
+
+  pagar() {
+    this.state.pagar(this);
+  }
+
+  getEstado() {
+    return this.state.getEstado();
   }
 
   calcularPago(horas) {

@@ -4,7 +4,7 @@
   "description": "Software básico de parqueadero con Express y SQLite",
   "main": "app.js",
   "scripts": {
-    "start": "node app2.js"
+    "start": "node app3.js"
   },
   "keywords": [],
   "author": "",

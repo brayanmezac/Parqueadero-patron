@@ -1,3 +1,5 @@
+const { PagadoState } = require('./patterns/state/vehiculoState');
+const VehiculoFactory = require('./patterns/factory/vehiculoFactory');
 const express = require('express');
 const path = require('path');
 const sqlite3 = require('sqlite3').verbose();
@@ -83,10 +85,20 @@ app.get('/calcular-valores/:id', (req, res) => {
 
 // Ruta para listar los vehículos estacionados
 app.get('/parqueos', (req, res) => {
-    db.all("SELECT * FROM parqueos WHERE horaSalida IS NULL", [], (err, rows) => {
+    db.all("SELECT * FROM parqueos", [], (err, rows) => {
         if (err) {
             return res.status(500).send("Error al obtener los vehículos.");
         }
+
+        // Añadir el estado a cada vehículo
+        rows.forEach(row => {
+            const vehiculo = VehiculoFactory.createVehiculo(row.tipo, row.placa);
+            if (row.horaSalida) {
+                vehiculo.setState(new PagadoState());
+            }
+            row.estado = vehiculo.getEstado();
+        });
+
         res.json(rows);
     });
 });
@@ -121,6 +133,10 @@ app.post('/pagar', (req, res) => {
             if (err) {
                 return res.status(500).send("Error al registrar el pago.");
             }
+            
+            // Crear el vehículo y actualizar su estado a "Pagado"
+            const vehiculo = VehiculoFactory.createVehiculo(row.tipo, row.placa);
+            vehiculo.setState(new PagadoState());
 
             const informe = {
                 vehiculo: {

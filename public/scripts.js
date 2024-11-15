@@ -15,6 +15,7 @@ function cargarParqueos() {
                     <td id="horas-${parqueo.id}">Calculando...</td>
                     <td>${getDescuentoPorcentaje(parqueo.descuento)}</td>
                     <td id="total-${parqueo.id}">Calculando...</td>
+                    <td id="estado-${parqueo.id}">${parqueo.estado || 'Estacionado'}</td>
                     <td><button class="btn btn-sm btn-primary" onclick="registrarSalida(${parqueo.id})">Registrar Salida</button></td>
                 `;
                 listaParqueos.appendChild(row);
@@ -23,7 +24,7 @@ function cargarParqueos() {
                 fetch(`/calcular-valores/${parqueo.id}`)
                     .then(response => response.json())
                     .then(valores => {
-                        document.getElementById(`horas-${parqueo.id}`).innerText = `${valores.horasEstacionado} horas`;
+                        document.getElementById(`horas-${parqueo.id}`).innerText = valores.horasEstacionado;
                         document.getElementById(`total-${parqueo.id}`).innerText = `$${valores.total.toFixed(2)}`;
                     })
                     .catch(error => console.error('Error al calcular valores:', error));
@@ -92,7 +93,10 @@ function registrarSalida(id) {
     })
     .then(response => response.json())
     .then(data => {
-        mostrarInformePago(data);
+        alert(data.mensaje);
+        document.getElementById(`estado-${id}`).innerText = data.informe.estado;
+        document.getElementById(`horas-${id}`).innerText = data.informe.horasEstacionado;
+        document.getElementById(`total-${id}`).innerText = `$${data.informe.total.toFixed(2)}`;
         cargarParqueos();
     })
     .catch((error) => {
