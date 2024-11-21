@@ -1,0 +1,73 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+class VehiculoState {
+  + estacionar(vehiculo: Vehiculo)
+  + mover(vehiculo: Vehiculo)
+  + pagar(vehiculo: Vehiculo)
+  + getEstado(): String
+}
+
+class EstacionadoState extends VehiculoState {
+  + estacionar(vehiculo: Vehiculo)
+  + mover(vehiculo: Vehiculo)
+  + pagar(vehiculo: Vehiculo)
+  + getEstado(): String
+}
+
+class EnMovimientoState extends VehiculoState {
+  + estacionar(vehiculo: Vehiculo)
+  + mover(vehiculo: Vehiculo)
+  + pagar(vehiculo: Vehiculo)
+  + getEstado(): String
+}
+
+class PagadoState extends VehiculoState {
+  + estacionar(vehiculo: Vehiculo)
+  + mover(vehiculo: Vehiculo)
+  + pagar(vehiculo: Vehiculo)
+  + getEstado(): String
+}
+
+class Vehiculo {
+  + placa: String
+  - state: VehiculoState
+  + setState(state: VehiculoState)
+  + estacionar()
+  + mover()
+  + pagar()
+  + getEstado(): String
+}
+
+VehiculoState <|-- EstacionadoState
+VehiculoState <|-- EnMovimientoState
+VehiculoState <|-- PagadoState
+Vehiculo o-- VehiculoState
+
+note right of VehiculoState
+<<State>>
+end note
+
+note right of EstacionadoState
+<<Concrete State>>
+end note
+
+note right of EnMovimientoState
+<<Concrete State>>
+end note
+
+note right of PagadoState
+<<Concrete State>>
+end note
+
+note left of Vehiculo
+<<Context>>
+end note
+
+note as N1
+<<Context>> Contexto
+<<State>> Estado
+<<ConcreteState>> Estado Concreto
+end note
+
+@enduml

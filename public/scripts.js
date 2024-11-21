@@ -1,7 +1,12 @@
 // Función para cargar los parqueos
 function cargarParqueos() {
     fetch('/parqueos')
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Error en el servidor');
+            }
+            return response.json();
+        })
         .then(data => {
             const listaParqueos = document.getElementById('listaEstacionados');
             const listaHistorial = document.getElementById('listaHistorial');
@@ -21,12 +26,19 @@ function cargarParqueos() {
                     <td id="estado-${parqueo.id}">${parqueo.estado || 'Estacionado'}</td>
                 `;
                 if (parqueo.estado === 'Estacionado') {
-                    row.innerHTML += `<td><button class="btn btn-sm btn-primary" onclick="registrarSalida(${parqueo.id})">Pagar</button></td>`;
-                    listaEstacionados.appendChild(row);
+                    row.innerHTML += `
+                        <td>
+                            <select id="metodoPago-${parqueo.id}">
+                                <option value="efectivo">Efectivo</option>
+                                <option value="tarjeta">Tarjeta</option>
+                                <option value="appMovil">App Móvil</option>
+                            </select>
+                            <button class="btn btn-sm btn-primary" onclick="registrarSalida(${parqueo.id})">Pagar</button>
+                        </td>`;
+                        listaParqueos.appendChild(row);
                 } else {
                     listaHistorial.appendChild(row);
                 }
-
                 // Obtener y mostrar los valores calculados
                 fetch(`/calcular-valores/${parqueo.id}`)
                     .then(response => response.json())
@@ -35,7 +47,12 @@ function cargarParqueos() {
                         document.getElementById(`total-${parqueo.id}`).innerText = `$${valores.total.toFixed(2)}`;
                     })
                     .catch(error => console.error('Error al calcular valores:', error));
+
             });
+
+            // Inicializar la funcionalidad de ordenamiento
+            new Tablesort(document.getElementById('tablaParqueos'));
+            new Tablesort(document.getElementById('tablaHistorial'));
         })
         .catch(error => console.error('Error:', error));
 }
@@ -91,23 +108,41 @@ document.getElementById('registroForm').addEventListener('submit', function(e) {
 
 // Función para registrar la salida de un vehículo
 function registrarSalida(id) {
+    const metodoPago = document.getElementById(`metodoPago-${id}`).value;
+
+    console.log('Enviando datos:', { id, metodoPago }); 
+    
+    
     fetch('/pagar', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ id }),
+        body: JSON.stringify({ id, metodoPago }),
     })
-    .then(response => response.json())
+    .then(response => {
+        console.log('Respuesta del servidor:', response); // Log de la respuesta completa
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
     .then(data => {
-        alert(data.mensaje);
-        document.getElementById(`estado-${id}`).innerText = data.informe.estado;
-        document.getElementById(`horas-${id}`).innerText = data.informe.horasEstacionado;
-        document.getElementById(`total-${id}`).innerText = `$${data.informe.total.toFixed(2)}`;
-        cargarParqueos();
+        if (data.error) {
+            alert(data.error);
+        } else {
+            alert(data.mensaje);
+            document.getElementById(`estado-${id}`).innerText = data.informe.estado;
+            document.getElementById(`horas-${id}`).innerText = data.informe.horasEstacionado;
+            document.getElementById(`total-${id}`).innerText = `$${data.informe.total.toFixed(2)}`;
+            cargarParqueos();
+            // Mostrar el informe de pago
+            mostrarInformePago(data);
+        }
     })
     .catch((error) => {
         console.error('Error:', error);
+        alert('Hubo un error al procesar el pago'); 
     });
 }
 

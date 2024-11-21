@@ -1,0 +1,66 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+class Client << (Client) >>
+Client : + main()
+
+abstract class Vehiculo << (Abstraction) >> {
+    - metodoPago: MetodoPago
+    + Vehiculo(metodoPago: MetodoPago)
+    + pagar(cantidad)
+}
+
+class Auto << (Refined Abstraction) >> extends Vehiculo {
+    + pagar(cantidad)
+}
+
+class Moto << (Refined Abstraction) >> extends Vehiculo {
+    + pagar(cantidad)
+}
+
+class Camioneta << (Refined Abstraction) >> extends Vehiculo {
+    + pagar(cantidad)
+}
+
+interface MetodoPago << (Implementor) >> {
+    + procesarPago(cantidad)
+}
+
+class PagoEfectivo << (Concrete Implementor) >> implements MetodoPago {
+    + procesarPago(cantidad)
+}
+
+class PagoTarjeta << (Concrete Implementor) >> implements MetodoPago {
+    + procesarPago(cantidad)
+}
+
+class PagoAppMovil << (Concrete Implementor) >> implements MetodoPago {
+    + procesarPago(cantidad)
+}
+
+Client --> Vehiculo : utiliza
+Vehiculo o--> MetodoPago : usa
+Vehiculo <|-- Auto
+Vehiculo <|-- Moto
+Vehiculo <|-- Camioneta
+MetodoPago <|.. PagoEfectivo
+MetodoPago <|.. PagoTarjeta
+MetodoPago <|.. PagoAppMovil
+
+note as N1
+Este diagrama ilustra el patrón de diseño Bridge, que desacopla una abstracción de su 
+implementación, permitiendo que varíen independientemente.
+
+Elementos clave:
+- **Abstracción (Vehiculo)**: Representa el concepto abstracto, que contiene una referencia 
+    al implementador.
+- **Abstracción Refinada (Auto, Moto, Camioneta)**: Extiende la abstracción para agregar 
+    un comportamiento 
+    más específico.
+- **Implementador (MetodoPago)**: Define la interfaz para las clases de implementación.
+- **Implementador Concreto (PagoEfectivo, PagoTarjeta, PagoAppMovil)**: Proporciona 
+    implementaciones concretas de la interfaz del implementador.
+- **Cliente**: Utiliza la abstracción para realizar operaciones.
+end note
+
+@enduml

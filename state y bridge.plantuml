@@ -1,0 +1,105 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+interface MetodoPago {
+    + procesarPago(cantidad)
+}
+MetodoPago : <<I>>
+
+class PagoEfectivo {
+    + procesarPago(cantidad)
+}
+PagoEfectivo : <<CI>>
+
+class PagoTarjeta {
+    + procesarPago(cantidad)
+}
+PagoTarjeta : <<CI>>
+
+class PagoAppMovil {
+    + procesarPago(cantidad)
+}
+PagoAppMovil : <<CI>>
+
+abstract class VehiculoState {
+    + estacionar(vehiculo: Vehiculo)
+    + mover(vehiculo: Vehiculo)
+    + pagar(vehiculo: Vehiculo)
+    + getEstado(): String
+}
+VehiculoState : <<S>>
+
+class EstacionadoState {
+    + estacionar(vehiculo: Vehiculo)
+    + mover(vehiculo: Vehiculo)
+    + pagar(vehiculo: Vehiculo)
+    + getEstado(): String
+}
+EstacionadoState : <<CS>>
+
+class EnMovimientoState {
+    + estacionar(vehiculo: Vehiculo)
+    + mover(vehiculo: Vehiculo)
+    + pagar(vehiculo: Vehiculo)
+    + getEstado(): String
+}
+EnMovimientoState : <<CS>>
+
+class PagadoState {
+    + estacionar(vehiculo: Vehiculo)
+    + mover(vehiculo: Vehiculo)
+    + pagar(vehiculo: Vehiculo)
+    + getEstado(): String
+}
+PagadoState : <<CS>>
+
+abstract class Vehiculo {
+    - metodoPago: MetodoPago
+    - state: VehiculoState
+    + Vehiculo(metodoPago: MetodoPago)
+    + setState(state: VehiculoState)
+    + estacionar()
+    + mover()
+    + pagar(cantidad)
+    + getEstado(): String
+}
+Vehiculo : <<A>>
+
+class Auto extends Vehiculo {
+    + pagar(cantidad)
+}
+Auto : <<RA>>
+
+class Moto extends Vehiculo {
+    + pagar(cantidad)
+}
+Moto : <<RA>>
+
+class Camioneta extends Vehiculo {
+    + pagar(cantidad)
+}
+Camioneta : <<RA>>
+
+Vehiculo o-- MetodoPago
+Vehiculo o-- VehiculoState
+VehiculoState <|-- EstacionadoState
+VehiculoState <|-- EnMovimientoState
+VehiculoState <|-- PagadoState
+MetodoPago <|.. PagoEfectivo
+MetodoPago <|.. PagoTarjeta
+MetodoPago <|.. PagoAppMovil
+Vehiculo <|-- Auto
+Vehiculo <|-- Moto
+Vehiculo <|-- Camioneta
+
+note as N1
+<<A>> Abstraction
+<<RA>> Refined Abstraction
+<<I>> Implementor
+<<CI>> Concrete Implementor
+<<S>> State
+<<CS>> Concrete State
+end note
+
+N1 .. Vehiculo
+@enduml

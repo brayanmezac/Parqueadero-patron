@@ -1,5 +1,6 @@
 const { PagadoState } = require('./patterns/state/vehiculoState');
 const VehiculoFactory = require('./patterns/factory/vehiculoFactory');
+const { PagoEfectivo, PagoTarjeta, PagoAppMovil } = require('./patterns/bridge/metodoPago');
 const express = require('express');
 const path = require('path');
 const sqlite3 = require('sqlite3').verbose();
@@ -24,7 +25,8 @@ db.run(`CREATE TABLE IF NOT EXISTS parqueos (
         tipo TEXT, 
         horaEntrada TEXT, 
         horaSalida TEXT,
-        descuento TEXT
+        descuento TEXT,
+        total INTEGER
 )`);
 
 // Ruta para registrar la entrada de vehículos
@@ -105,14 +107,20 @@ app.get('/parqueos', (req, res) => {
 
 // Ruta para registrar la salida de vehículos y calcular el pago
 app.post('/pagar', (req, res) => {
-    const { id } = req.body;
+    const { id, metodoPago } = req.body;
+
+    // Validación de entrada
+    if (!id || !metodoPago) {
+        console.error('Datos incompletos:', { id, metodoPago });
+        return res.status(400).json({ error: "Datos incompletos" });
+    }
 
     db.get("SELECT * FROM parqueos WHERE id = ?", [id], (err, row) => {
         if (err) {
-            return res.status(500).send("Error al buscar el registro.");
+            return res.status(500).json({ error: "Error al buscar el registro." });
         }
         if (!row) {
-            return res.status(404).send("Registro no encontrado.");
+            return res.status(404).json({ error: "Registro no encontrado." });
         }
 
         const horaEntrada = new Date(row.horaEntrada);
@@ -129,15 +137,36 @@ app.post('/pagar', (req, res) => {
             total = subtotal * 0.65;  // 35% de descuento
         }
 
-        db.run("UPDATE parqueos SET horaSalida = ? WHERE id = ?", [horaSalida.toISOString(), id], (err) => {
+        // Crear el vehículo y actualizar su estado a "Pagado"
+        let metodoPagoObj;
+        switch (metodoPago) {
+            case 'efectivo':
+                metodoPagoObj = new PagoEfectivo();
+                break;
+            case 'tarjeta':
+                metodoPagoObj = new PagoTarjeta();
+                break;
+            case 'appMovil':
+                metodoPagoObj = new PagoAppMovil();
+                break;
+            default:
+                return res.status(400).json({ error: "Método de pago no válido." });
+        }
+
+        const vehiculo = VehiculoFactory.createVehiculo(row.tipo, row.placa, metodoPagoObj);
+        vehiculo.horasEstacionado = horasEstacionado;
+        vehiculo.setState(new PagadoState());
+
+        // Procesar el pago con el método de pago seleccionado
+        total = vehiculo.metodoPago.procesarPago(total);
+        console.log('horaSalida:', horaSalida.toISOString());
+        console.log('total:', total);
+        console.log('id:', id);
+        db.run("UPDATE parqueos SET horaSalida = ?, total = ? WHERE id = ?", [horaSalida.toISOString(), total, id], (err) => {
             if (err) {
-                return res.status(500).send("Error al registrar el pago.");
+                return res.status(500).json({ error: "Error al registrar el pago." });
             }
             
-            // Crear el vehículo y actualizar su estado a "Pagado"
-            const vehiculo = VehiculoFactory.createVehiculo(row.tipo, row.placa);
-            vehiculo.setState(new PagadoState());
-
             const informe = {
                 vehiculo: {
                     tipo: row.tipo,
@@ -156,6 +185,6 @@ app.post('/pagar', (req, res) => {
     });
 });
 
-app.listen(3000, () => {
+app.listen(3001, () => {
     console.log('Servidor escuchando en el puerto 3000');
 });
